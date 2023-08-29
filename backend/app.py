@@ -8,12 +8,25 @@ app = Flask(__name__)
 def hello():
     return "Hello from the backend!"
 
-@app.route('/weather', methods=['GET'])
-def get_weather():
-    city = request.args.get('city', default='Christchurch')  # Default city is Christchurch
-    api_key = os.environ.get('OPENWEATHER_API_KEY')
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
-    response = requests.get(url)
+@app.route('/surfcast', methods=['GET'])
+def get_surfcast():
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+    api_key = os.environ.get('STORMGLASS_API_KEY')
+
+    params = ','.join([
+        'waveHeight', 'waveDirection', 'wavePeriod', 
+        'windSpeed', 'windDirection', 'airTemperature',
+        'swellHeight', 'swellDirection', 'swellPeriod'
+    ])
+    
+    url = f"https://api.stormglass.io/v2/weather/point?lat={lat}&lng={lon}&params={params}"
+    
+    headers = {
+        'Authorization': api_key
+    }
+
+    response = requests.get(url, headers=headers)
     return jsonify(response.json())
 
 if __name__ == '__main__':

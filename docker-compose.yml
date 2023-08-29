@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     environment:
-    - OPENWEATHER_API_KEY=08fd308320c1ef0bb4ec86d99c02e8fb
+    - STORMGLASS_API_KEY=ad546384-4626-11ee-8d52-0242ac130002-ad5463f2-4626-11ee-8d52-0242ac130002
 
 
   db:
