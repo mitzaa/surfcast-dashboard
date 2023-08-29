@@ -15,6 +15,9 @@ services:
       - "5001:5000"
     depends_on:
       - db
+    environment:
+    - OPENWEATHER_API_KEY=08fd308320c1ef0bb4ec86d99c02e8fb
+
 
   db:
     image: postgres:13-alpine
