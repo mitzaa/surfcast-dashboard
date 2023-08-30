@@ -1,17 +1,29 @@
-window.onload = function() {
-    fetch(`/surfcast?lat=${latitude}&lon=${longitude}`)  
-    .then(response => response.json())
-    .then(data => {
-       
-        let waveHeight = data.hours[0].waveHeight.sg;  
-        let windSpeed = data.hours[0].windSpeed.sg;
-        let swellDirection = data.hours[0].swellDirection.sg;
+document.addEventListener("DOMContentLoaded", function() {
+    // Add an event listener to the button to fetch surfcast data when clicked
+    document.getElementById("fetchData").addEventListener("click", function() {
+        // Get lat and lon values from input fields
+        const lat = document.getElementById("latitude").value;
+        const lon = document.getElementById("longitude").value;
 
-        document.getElementById('waveHeight').textContent = waveHeight + ' m';
-        document.getElementById('windSpeed').textContent = windSpeed + ' m/s';
-        document.getElementById('swellDirection').textContent = swellDirection + '°';
-    })
-    .catch(error => {
-        console.error("There was an error fetching the surf data:", error);
+        // Ensure that lat and lon are not empty
+        if (!lat || !lon) {
+            alert("Please enter both latitude and longitude.");
+            return;
+        }
+
+        // Fetch surfcast data using the provided lat and lon from backend on port 5051
+        fetch(`http://localhost:5051/surfcast?lat=${lat}&lon=${lon}`)
+            .then(response => response.json())
+            .then(data => {
+                const surfData = data.hours[0];  // Get the first hour data
+                document.getElementById("waveHeight").textContent = "Wave Height: " + surfData.waveHeight.sg + " meters";
+                document.getElementById("windSpeed").textContent = "Wind Speed: " + surfData.windSpeed.sg + " m/s";
+                document.getElementById("swellDirection").textContent = "Swell Direction: " + surfData.swellDirection.sg + "°";
+            })
+            .catch(error => {
+                console.error("Error fetching surfcast data:", error);
+            });
     });
-};
+});
+
+

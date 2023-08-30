@@ -38,7 +38,10 @@ def get_surfcast():
     return jsonify(response.json())
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)
+    print("STORMGLASS_API_KEY:", os.environ.get('STORMGLASS_API_KEY'))
+
+
 
 
 
