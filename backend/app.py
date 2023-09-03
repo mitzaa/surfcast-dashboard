@@ -11,7 +11,7 @@ DATABASE_CONFIG = {
     'dbname': 'weather',
     'user': 'marion',
     'password': 'surfcast',
-    'host': 'localhost',
+    'host': 'db',
     'port': '5432' 
 }
 
@@ -93,9 +93,7 @@ def get_surfcast():
     return jsonify(response.json())
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-    # host='0.0.0.0
+    app.run(host='0.0.0.0')
 
 
 

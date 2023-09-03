@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
-        // Fetch surfcast data using the provided lat and lon from backend on port 5051
-        fetch(`http://localhost:5051/surfcast?lat=${lat}&lon=${lon}`)
+        // Fetch surfcast data using the provided lat and lon from backend on port 5001
+        fetch(`http://localhost:5001/surfcast?lat=${lat}&lon=${lon}`)
             .then(response => response.json())
             .then(data => {
                 const surfData = data.hours[0];  // Get the first hour data
