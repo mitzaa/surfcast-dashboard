@@ -3,10 +3,15 @@ from flask_cors import CORS
 import requests
 import os
 import psycopg2
+import logging
 
-app = Flask(__name__, 
-            static_folder='frontend/static', 
-            template_folder='frontend/templates')
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+
+
+app = Flask(__name__, static_folder="./static", template_folder="./templates")
+
 
 CORS(app, resources={r"/surfcast/*": {"origins": "http://localhost:8080"}})
 
@@ -59,49 +64,34 @@ def index():
     return render_template('index.html')  
 
 @app.route('/surfcast/', methods=['GET'])
-def get_surfcast():
-    lat = request.args.get('lat')
-    lon = request.args.get('lon')
-    api_key = os.environ.get('STORMGLASS_API_KEY')
+def surfcast():
+    try:
+        lat = request.args.get('lat')
+        lon = request.args.get('lon')
+        logging.info(f"Fetching data for coordinates: lat={lat}, lon={lon}")
+        
+        api_key = os.environ.get('STORMGLASS_API_KEY')
+        if not api_key:
+            logging.warning("STORMGLASS_API_KEY not set. Cannot fetch data.")
+            return jsonify({"error": "API key not set."}), 500
+        
+        response = requests.get(f"https://api.stormglass.io/v2/weather/point?lat={lat}&lon={lon}", headers={"Authorization": api_key})
+        if response.status_code != 200:
+            logging.error(f"Failed to fetch data from Stormglass API. Status code: {response.status_code}")
+            return jsonify({"error": "Failed to fetch data from API."}), response.status_code
+        
+        data = response.json()
+        temp = data['hours'][0]['airTemperature']['noaa']
+        wind_speed = data['hours'][0]['windSpeed']['noaa']
+        wind_dir = data['hours'][0]['windDirection']['noaa']
+        save_to_db(lat, lon, temp, wind_speed, wind_dir)
+        
+        return jsonify(response.json()), 200
 
-    if not lat or not lon:
-        return jsonify({"error": "Please provide both lat and lon parameters."}), 400
+    except Exception as e:
+        logging.error(f"Error fetching data for coordinates: lat={lat}, lon={lon}. Error: {e}")
+        return jsonify({"error": "An error occurred while fetching data."}), 500
 
-    params = ','.join([
-        'waveHeight', 'waveDirection', 'wavePeriod', 
-        'windSpeed', 'windDirection', 'airTemperature',
-        'swellHeight', 'swellDirection', 'swellPeriod'
-    ])
-    
-    url = f"https://api.stormglass.io/v2/weather/point?lat={lat}&lng={lon}&params={params}"
-    
-    headers = {
-        'Authorization': api_key
-    }
-
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch data from Stormglass API."}), 500
-    
-    data = response.json()
-    
-    waveHeight = data.get('waveHeight')
-    wind = data.get('windSpeed')
-    swell = data.get('swellHeight')
-
-    save_to_db(lat, lon, waveHeight, wind, swell)
-    print(response.status_code)
-    print(response.json())
-
-    
-    return jsonify(response.json())
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    create_table()
+    app.run(host='0.0.0.0', port=5000)
