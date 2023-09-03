@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
 import requests
 import os
 import psycopg2
@@ -7,13 +8,16 @@ app = Flask(__name__,
             static_folder='frontend/static', 
             template_folder='frontend/templates')
 
+CORS(app, resources={r"/surfcast/*": {"origins": "http://localhost:8080"}})
+
 DATABASE_CONFIG = {
     'dbname': 'weather',
-    'user': 'marion',
-    'password': 'surfcast',
+    'user': 'user',         
+    'password': 'password', 
     'host': 'db',
     'port': '5432' 
 }
+
 
 def get_db_connection():
     conn = psycopg2.connect(**DATABASE_CONFIG)
@@ -93,7 +97,8 @@ def get_surfcast():
     return jsonify(response.json())
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)
+
 
 
 

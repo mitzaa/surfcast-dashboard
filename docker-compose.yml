@@ -22,8 +22,6 @@ services:
       - STORMGLASS_API_KEY=ad546384-4626-11ee-8d52-0242ac130002-ad5463f2-4626-11ee-8d52-0242ac130002
     volumes:
       - ./backend:/app/backend
-      - ./frontend/templates:/app/frontend/templates
-      - ./frontend/static:/app/frontend/static
 
   db:
     image: postgres:13-alpine
