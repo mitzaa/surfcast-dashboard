@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG,
 app = Flask(__name__, static_folder="./static", template_folder="./templates")
 
 
-CORS(app, resources={r"/surfcast/*": {"origins": "http://localhost:8080"}})
+CORS(app)
 
 DATABASE_CONFIG = {
     'dbname': 'weather',
@@ -85,16 +85,35 @@ def surfcast():
             logging.warning("STORMGLASS_API_KEY not set. Cannot fetch data.")
             return jsonify({"error": "API key not set."}), 500
         
-        response = requests.get(f"https://api.stormglass.io/v2/weather/point?lat={lat}&lon={lon}", headers={"Authorization": api_key})
+
+        start = arrow.now().floor('day')
+        end = arrow.now().ceil('day')
+        response = requests.get(
+            'https://api.stormglass.io/v2/weather/point',
+            params={
+                'lat': lat,
+                'lng': lon,
+                'params': ','.join(['waveHeight', 'airTemperature']),
+                'start': start.to('UTC').timestamp(),  # Convert to UTC timestamp
+                'end': end.to('UTC').timestamp()  # Convert to UTC timestamp
+            },
+            headers={
+                'Authorization': api_key
+            }
+        )
         if response.status_code != 200:
             logging.error(f"Failed to fetch data from Stormglass API. Status code: {response.status_code}")
             return jsonify({"error": "Failed to fetch data from API."}), response.status_code
         
+
         data = response.json()
-        temp = data['hours'][0]['airTemperature']['noaa']
-        wind_speed = data['hours'][0]['windSpeed']['noaa']
-        wind_dir = data['hours'][0]['windDirection']['noaa']
-        save_to_db(lat, lon, temp, wind_speed, wind_dir)
+        temp = data['hours'][0]['airTemperature'].get('noaa')
+        if not temp:
+            temp = data['hours'][0]['airTemperature'].get('smhi')
+        wave_height = data['hours'][0]['waveHeight'].get('noaa')
+        if not wave_height:
+            wave_height = data['hours'][0]['waveHeight'].get('meteo')
+        save_to_db(lat, lon, temp, wave_height, None)  
         
         return jsonify(response.json()), 200
 
@@ -104,4 +123,5 @@ def surfcast():
 
 if __name__ == "__main__":
     create_table()
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+

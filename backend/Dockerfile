@@ -4,11 +4,10 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-COPY . /app
-
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy the app.py and any other necessary files from backend directory to /app inside the container
+COPY app.py .
 
 CMD ["python", "app.py"]
-
