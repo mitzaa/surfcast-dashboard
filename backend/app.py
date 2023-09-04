@@ -63,11 +63,21 @@ def save_to_db(lat, lon, waveHeight, wind, swell):
 def index():
     return render_template('index.html')  
 
-@app.route('/surfcast/', methods=['GET'])
+@app.route('/surfcast', methods=['GET'])
 def surfcast():
     try:
         lat = request.args.get('lat')
         lon = request.args.get('lon')
+        
+        if not lat or not lon:
+            return jsonify({"error": "Both latitude and longitude are required."}), 400
+
+        try:
+            lat = float(lat)
+            lon = float(lon)
+        except ValueError:
+            return jsonify({"error": "Latitude and longitude must be valid numbers."}), 400
+        
         logging.info(f"Fetching data for coordinates: lat={lat}, lon={lon}")
         
         api_key = os.environ.get('STORMGLASS_API_KEY')
