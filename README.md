@@ -13,7 +13,7 @@ This application requires Docker and Docker Compose to run. Ensure both [Docker]
 
 To install this application on your system clone the repository using the following command   
 
-```git clone https://github.com/mitzaa/weather-dashboard.git```  
+```git clone https://github.com/mitzaa/surfcast-dashboard.git```  
 
 Once the repository is cloned navigate to it's directory like so  
 
